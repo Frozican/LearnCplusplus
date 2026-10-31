@@ -7,7 +7,7 @@ let user=null, state=loadLocal(), current={view:"dashboard"};
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const pct=(n,d)=>d?Math.round(n/d*100):0;
 const getChapter=id=>chapters.find(c=>c.id===id), getLesson=id=>lessons.find(l=>l.id===id);
-const btn=(id,label,cls="btn")=>'<button id="'+id+'" class="'+cls+'">'+label+'</button>';
+const btn=(id,label,cls="btn")=>'<button type="button" id="'+id+'" class="'+cls+'">'+label+'</button>';
 function crumb(t){$("#breadcrumb").textContent=t}
 function nav(v){document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===v))}
 function syncShell(){const n=state.completed.length,p=pct(n,200);$("#side-percent").textContent=p+"%";$("#side-fill").style.width=p+"%";$("#side-count").textContent=n+" / 200 lessons";$("#auth-button").textContent=user?(user.user_metadata?.display_name||user.email.split("@")[0]):"Sign in";$("#account-nav").textContent=user?"♙　My account":"♙　Sign in / Account"}
