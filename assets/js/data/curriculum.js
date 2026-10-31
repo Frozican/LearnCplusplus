@@ -47,10 +47,257 @@ function guideFor(title, chapterIndex){
  const match=lessonKinds.find(([pattern])=>pattern.test(title));
  return guides[match?match[1]:chapterIndex];
 }
-export const lessons=chapters.flatMap((chapter,ci)=>chapter.topics.map((title,i)=>{
- const id=chapter.id+"-"+String(i+1).padStart(2,"0"),g=guideFor(title,ci);
+const topicChecks=[
+[
+["What is C++ primarily used for?","Building compiled applications with control over performance and resources"],
+["What happens between writing source code and running a typical C++ program?","The source is compiled and linked into an executable"],
+["Which function is the usual entry point of a hosted C++ program?","main"],
+["What is the conventional purpose of a .cpp file?","It contains C++ source-code definitions"],
+["Which stage combines compiled object files and libraries?","Linking"],
+["What is the difference between a compiler error and a warning?","An error prevents a valid build; a warning flags suspicious code"],
+["What do comments do?","They document intent and are ignored by the compiler"],
+["What do braces usually delimit in C++?","A scope or compound statement block"],
+["What does returning 0 from main conventionally indicate?","Successful program termination"],
+["What is a good first mini-project for practicing program structure?","A small console program with input, processing, and output"]
+],
+[
+["What does initialization do when an object is created?","Gives the object its initial value"],
+["Which identifier is valid in C++?","player_score"],
+["Which type is intended for whole-number values?","int"],
+["Which type is suited to values with a fractional part?","double"],
+["What does bool represent?","A true-or-false value"],
+["What does const prevent?","Modification of the object through that name after initialization"],
+["What is a narrowing conversion?","A conversion that can lose range or precision"],
+["What does the % operator calculate for integers?","The remainder after division"],
+["What does operator precedence determine?","Which operators are grouped first in an expression"],
+["What can happen when a signed integer calculation exceeds its representable range?","Signed integer overflow causes undefined behavior"]
+],
+[
+["Which header declares the standard console stream objects?","<iostream>"],
+["Which stream is normally used for standard output?","std::cout"],
+["What does std::cin >> value typically read?","The next whitespace-delimited formatted value"],
+["Which standard type represents an owned sequence of characters?","std::string"],
+["How can a program read a full line including spaces?","Call std::getline(std::cin, text)"],
+["What does the escape sequence \\n represent?","A newline character"],
+["How can a program detect failed formatted input?","Check the stream state, for example with if (std::cin)"],
+["Which manipulator prints floating-point values in fixed notation?","std::fixed"],
+["What does std::setprecision(2) control with fixed formatting?","The number of digits after the decimal point"],
+["What are the main stages of an interactive console app?","Read input, validate/process it, then display a result"]
+],
+[
+["What is the result type of a comparison such as x < y?","bool"],
+["Which operator tests whether two values are equal?","=="],
+["When does the body of an if statement execute?","When its condition evaluates to true"],
+["What does an else branch represent?","The alternative taken when the preceding if condition is false"],
+["How are multiple mutually exclusive conditions commonly tested in order?","With an else-if chain"],
+["Why should nested conditions be kept readable?","Deep nesting makes control flow harder to understand and maintain"],
+["What does a && b evaluate to?","True only when both operands are true"],
+["What does !condition do?","It logically negates the condition"],
+["What kind of value is suitable for a switch selector?","An integral or enumeration value"],
+["When is the conditional operator ?: useful?","For a concise expression that selects one of two values"]
+],
+[
+["What is the main purpose of a loop?","To repeat a block of code while a condition or range requires it"],
+["When does a while loop test its condition?","Before each iteration"],
+["Why does a do-while loop always execute its body at least once?","Its condition is checked after the body"],
+["Which loop form groups initialization, condition, and update in one header?","for"],
+["What is an accumulator variable used for?","To keep a running total or combined result"],
+["What is an off-by-one error?","A loop runs one iteration too many or too few at a boundary"],
+["What does break do inside a loop?","It exits the nearest enclosing loop"],
+["How many iterations does a nested inner loop perform overall?","Its iterations repeat for every iteration of the outer loop"],
+["What does a range-based for loop visit?","Each element in the supplied range"],
+["What must every condition-controlled loop eventually do to terminate?","Make progress toward a state where its condition becomes false"]
+],
+[
+["Why split a program into functions?","To give named, reusable units clear responsibilities"],
+["What is a function declaration used for?","It tells the compiler a function's name, return type, and parameter types"],
+["What is the difference between an argument and a parameter?","An argument is supplied by the caller; a parameter receives it"],
+["What does a non-void function provide to its caller?","A value matching its declared return type"],
+["What does void mean as a function return type?","The function does not return a value"],
+["When is function overloading allowed?","When functions with the same name have different parameter lists"],
+["What is a default argument?","A value used when the caller omits a trailing argument"],
+["What does local scope mean?","A name is accessible only within its declared scope"],
+["What belongs in a typical header file?","Declarations needed by other source files"],
+["What is a useful first step when decomposing a large task?","Identify separate responsibilities and give each a clear function"]
+],
+[
+["What is a key property of a built-in C-style array?","Its number of elements is fixed"],
+["What is the first valid index of a C++ array?","0"],
+["What is a safe way to process every array element?","Iterate from index zero up to but not including the element count"],
+["What is std::array designed to represent?","A fixed-size sequence with its size encoded in the type"],
+["When is std::vector a better choice than std::array?","When the number of elements needs to change at runtime"],
+["What does vector::pop_back do?","Removes the last element"],
+["What is the difference between vector size and capacity?","Size is the number of elements; capacity is allocated storage before reallocation is needed"],
+["What does std::string::size return?","The number of char elements in the string"],
+["What does std::string::find return when no match exists?","std::string::npos"],
+["How should you choose a collection type?","Match its guarantees and operations to the data and workload"]
+],
+[
+["What does an object's address identify?","Its location in memory during its lifetime"],
+["What is a reference in C++?","An alias bound to an existing object"],
+["What does a pointer store?","An address of an object or function, or a null pointer value"],
+["What does the * operator do when applied to a valid pointer expression?","It dereferences the pointer to access its pointed-to object"],
+["Why should a pointer be checked against nullptr before dereferencing when it may be null?","Dereferencing a null pointer has undefined behavior"],
+["What does passing an int* parameter allow a function to receive?","An address through which it may access the caller's int"],
+["Why pass a large read-only object as const T&?","It avoids copying while preventing modification through that reference"],
+["Why is direct use of new and delete often discouraged in application code?","RAII containers and smart pointers manage ownership more safely"],
+["What is the typical distinction between automatic and dynamic storage duration?","Automatic objects end with their scope; dynamically allocated objects need an owning cleanup mechanism"],
+["What is a dangling reference or pointer?","An alias or address used after the referred-to object has ceased to exist"]
+],
+[
+["What is a struct used for?","Defining a user-defined type that groups related data and behavior"],
+["How do you access a public member through a struct object?","Use the dot operator"],
+["What does aggregate initialization do?","Initializes an aggregate's elements from a braced list"],
+["Can a struct contain member functions in C++?","Yes, structs can have data members and member functions"],
+["What is an enumeration useful for?","Representing a set of named integral constants"],
+["What is a benefit of enum class over an unscoped enum?","Its enumerators are scoped and do not implicitly convert to integers"],
+["What does using Score = int; declare?","A type alias named Score"],
+["What does composition of types mean?","Building a larger type from smaller member objects"],
+["Why model related values in one data type?","It keeps related state together and makes intent clearer"],
+["What is a useful invariant for a data record?","Its members together represent a valid, consistent domain object"]
+],
+[
+["What is an object in C++?","An instance of a type with state and a lifetime"],
+["What does private access mean for a class member?","It can be accessed by the class's member and friend functions, not arbitrary callers"],
+["When is a constructor called?","When an object is initialized"],
+["What is the purpose of a member-initializer list?","It initializes base classes and data members before the constructor body"],
+["When is a destructor called for an automatic object?","When its lifetime ends as its scope is exited"],
+["What is encapsulation intended to protect?","The internal state and invariants of an object"],
+["What does a const member function promise?","It does not modify the observable non-mutable state of the object"],
+["What is a static data member shared by?","All objects of the class"],
+["What is operator overloading for?","Defining natural operator behavior for a user-defined type"],
+["What makes a class design robust?","A small public interface that keeps every object in a valid state"]
+],
+[
+["When is composition preferable to inheritance?","When a type uses or owns another object rather than being substitutable for it"],
+["What does public inheritance normally model?","An is-a relationship with public substitutability"],
+["What is the purpose of a protected member?","It is accessible to the class and its derived classes"],
+["What makes a member function virtual?","Calls through a base interface can dispatch to an override at runtime"],
+["What does override tell the compiler?","The function is intended to override a virtual base-class function"],
+["What is an abstract class?","A class with at least one pure virtual function that cannot be instantiated directly"],
+["What is runtime polymorphism?","Calling a derived implementation through a base-class interface"],
+["Why should a polymorphic base class have a virtual destructor?","Deleting a derived object through a base pointer must run the derived destructor"],
+["What is object slicing?","Copying a derived object into a base object discards the derived part"],
+["What is the central idea of the SOLID principles?","Design types and dependencies to be easier to extend, substitute, and maintain"]
+],
+[
+["What is a standard-library container?","An object that stores and manages a collection of elements"],
+["What does vector typically provide efficiently?","Contiguous storage and constant-time random access"],
+["What does std::span represent?","A non-owning view over a contiguous sequence"],
+["Which container supports efficient insertion and removal at both ends?","std::deque"],
+["What is the defining ordering property of std::map?","Its keys are kept in sorted order"],
+["What is the average lookup complexity of std::unordered_map?","Average constant time"],
+["What is std::stack an example of?","A container adaptor exposing last-in, first-out operations"],
+["What does an iterator represent?","A position in a range that algorithms can use to access elements"],
+["What does iterator invalidation mean?","An operation makes a previously obtained iterator no longer valid"],
+["What should guide container selection?","Required operations, complexity, ordering, memory layout, and invalidation guarantees"]
+],
+[
+["What do STL algorithms usually operate on?","Iterator ranges"],
+["What ordering does std::sort require from its comparator?","A strict weak ordering"],
+["What precondition does std::binary_search require?","The range is partitioned according to the searched value, commonly by being sorted"],
+["What is the purpose of std::transform?","To apply an operation to input elements and write the results to an output range"],
+["What does a predicate return?","A boolean result indicating whether an element satisfies a condition"],
+["What is a lambda expression?","An inline expression that creates a callable closure object"],
+["What does a lambda capture specify?","Which surrounding variables the closure can access and how they are captured"],
+["What is a function object?","An object whose type defines operator()"],
+["Why do algorithms accept iterators instead of a specific container?","The same algorithm can work with many compatible range types"],
+["What is a key property of a range view?","It provides a composable, often lazy view without owning the underlying elements"]
+],
+[
+["What does a function template define?","A family of functions parameterized by types or values"],
+["What is a class template useful for?","Defining a reusable class whose behavior or storage depends on template parameters"],
+["What is a type template parameter?","A placeholder for a type supplied when a template is instantiated"],
+["What is template argument deduction?","The compiler infers template arguments from function call arguments"],
+["What is a non-type template parameter?","A compile-time value parameter such as an integer or pointer"],
+["What is a variadic template?","A template that accepts a variable number of template arguments"],
+["What does a C++ concept express?","A compile-time set of requirements on template arguments"],
+["What is template specialization used for?","Providing a tailored implementation for particular template arguments"],
+["What does a type trait provide?","Compile-time information or transformations about a type"],
+["What makes a generic API well designed?","Its constraints and supported operations are explicit and minimal"]
+],
+[
+["Why do resources need lifetime management?","Resources must be released reliably when they are no longer owned"],
+["What is the core RAII rule?","Acquire a resource in an object's constructor and release it in its destructor"],
+["What ownership does std::unique_ptr express?","One exclusive owner of a dynamically managed object"],
+["When is std::shared_ptr appropriate?","When multiple owners genuinely share an object's lifetime"],
+["What does std::weak_ptr provide?","A non-owning observation of an object managed by shared_ptr"],
+["What does a copy operation normally do?","Creates a distinct object with equivalent value or defined copy semantics"],
+["What does move semantics enable?","Transferring resources from an object that can be left in a valid moved-from state"],
+["What does std::move do?","Casts an expression to an xvalue so move-aware overloads may be selected"],
+["What is the Rule of Zero?","Prefer member types that manage resources so the class needs no custom special members"],
+["What does the strong exception guarantee promise?","If an operation throws, the program state remains unchanged"]
+],
+[
+["What does auto deduce?","A variable's type from its initializer, following template-style deduction rules"],
+["What does nullptr improve over using integer zero for pointers?","It has a dedicated null pointer type"],
+["What does structured binding allow?","Naming the elements of an array, tuple-like object, or aggregate decomposition"],
+["What does std::optional<T> represent?","A T value that may be absent"],
+["What does std::variant<Ts...> hold?","One active value from a fixed set of alternative types"],
+["What is std::string_view?","A non-owning view of a character sequence"],
+["What does constexpr allow?","An expression or function to participate in constant evaluation when its inputs permit"],
+["What is the purpose of if constexpr?","Discarding a branch during template instantiation when its condition is false"],
+["What does the three-way comparison operator <=> produce?","A comparison category result describing ordering or equivalence"],
+["What is a good way to evaluate a newer standard-library feature?","Check its standard version and implementation support before relying on it"]
+],
+[
+["What is a syntax error?","Code that does not follow the language grammar"],
+["What is an assertion used to check?","A condition that the program expects to be true at a particular point"],
+["What is the role of a try block?","It surrounds code whose thrown exceptions may be handled by matching catch handlers"],
+["What happens when an exception is not caught in the current function?","It propagates to the caller while stack unwinding occurs"],
+["What is the basic exception safety guarantee?","The program remains valid and no resources are leaked, though values may change"],
+["What does std::expected represent?","Either a value or an error result"],
+["What does a debugger breakpoint do?","Pauses execution at a chosen location for inspection"],
+["What information does a stack trace provide?","The chain of active calls leading to a point in execution"],
+["What can AddressSanitizer detect?","Many memory errors such as out-of-bounds accesses and use-after-free"],
+["What should a useful test strategy include?","Normal cases, boundary cases, invalid inputs, and regression tests"]
+],
+[
+["What does std::ifstream do?","Reads data from a file"],
+["What is important when reading binary files?","Open the stream in binary mode and handle byte counts explicitly"],
+["Why parse structured text carefully?","Input may be malformed, incomplete, or contain unexpected delimiters"],
+["What is the purpose of separating headers and source files?","Declarations can be shared while definitions are compiled in a source file"],
+["What do include guards prevent?","The same header contents being processed multiple times in one translation unit"],
+["What does the One Definition Rule require?","Entities must obey the language's definition-count and consistency rules across translation units"],
+["What does a static library contain?","Object code that is linked into the final program"],
+["What are C++20 modules designed to improve?","Sharing compiled interface units without relying solely on textual header inclusion"],
+["What does a CMake target describe?","A buildable artifact and its sources, properties, and dependencies"],
+["Why use separate Debug and Release configurations?","They select different optimization and diagnostic settings for development and deployment"]
+],
+[
+["What does Big-O notation describe?","How an algorithm's resource use grows as input size increases"],
+["What is the worst-case time complexity of linear search?","O(n)"],
+["What is the typical lookup complexity of a singly linked list by index?","O(n)"],
+["What access order does a stack use?","Last in, first out"],
+["What is a hash table designed to provide?","Fast average key lookup using a hash function"],
+["What is the binary search tree ordering property?","Keys in the left subtree are smaller and keys in the right subtree are larger, under its comparator"],
+["What is a priority queue designed to retrieve efficiently?","The highest-priority element"],
+["What is graph traversal used for?","Visiting vertices and exploring their connections"],
+["What is backtracking?","Exploring choices and undoing a choice when a path cannot lead to a solution"],
+["What is the key idea of dynamic programming?","Reuse solutions to overlapping subproblems, often storing results"]
+],
+[
+["What does std::thread represent?","An independently executing thread of control"],
+["What happens when join is called on a joinable thread?","The caller waits for that thread to finish"],
+["What is the risk of detaching a thread?","It can outlive the objects it references if lifetime is not managed carefully"],
+["What does a mutex protect?","Shared state accessed by multiple threads"],
+["What is a condition variable used for?","Waiting efficiently until a shared-state condition may have changed"],
+["What does std::atomic provide?","Atomic operations on a shared object with defined memory-ordering semantics"],
+["What is a data race?","Conflicting unsynchronized accesses to the same memory location, at least one a write"],
+["What is profiling used for?","Finding where a program spends time or other resources"],
+["What is cache locality?","Accessing data close together in time or memory so caches work efficiently"],
+["What should happen before optimizing a project?","Measure a working baseline and identify the actual bottleneck"]
+]
+];
+const lessons=chapters.flatMap((chapter,ci)=>chapter.topics.map((title,i)=>{
+ const id=chapter.id+"-"+String(i+1).padStart(2,"0"),g=guideFor(title,ci),[q,answer]=topicChecks[ci][i];
+ const pool=topicChecks[ci].filter((_,j)=>j!==i).map(x=>x[1]);
+ const distractors=[pool[(i+1)%pool.length],pool[(i+4)%pool.length],pool[(i+7)%pool.length]];
+ const options=[answer,...distractors];
+ const shift=(i*3+ci)%4,rotated=options.map((_,j)=>options[(j+shift)%4]);
+ const correct=rotated.indexOf(answer);
  const about=title+": "+g.about;
  const how=g.how+" Focus on "+title.toLowerCase()+": write down the rule in your own words, trace one concrete example, and check the relevant standard-library or language guarantees before relying on an assumption.";
- return {id,chapterId:chapter.id,course:chapter.course,level:chapter.course==="Basic Course"?"Beginner":"Advanced",number:i+1,title,minutes:chapter.course==="Basic Course"?12:18,tags:[title,chapter.title],summary:about,sections:[{heading:"The core idea",body:about},{heading:"How to reason about it",body:how},{heading:"Common mistakes to avoid",body:"Do not rely on behavior you have not checked. Pay attention to types, object lifetime, boundary conditions, ownership, and error paths. Prefer the simplest standard C++ facility that expresses the requirement."}],code:g.code,tip:g.how,practice:g.task+" Then extend your solution with one additional requirement from this chapter: "+chapter.topics[(i+1)%10].toLowerCase()+".",quiz:{q:title+": "+g.q,opts:g.opts,a:g.a,why:"The correct choice follows from the C++ rule for "+title.toLowerCase()+". Compile a small experiment and inspect the result rather than memorizing the answer."}};
+ return {id,chapterId:chapter.id,course:chapter.course,level:chapter.course==="Basic Course"?"Beginner":"Advanced",number:i+1,title,minutes:chapter.course==="Basic Course"?12:18,tags:[title,chapter.title],summary:about,sections:[{heading:"The core idea",body:about},{heading:"How to reason about it",body:how},{heading:"Common mistakes to avoid",body:"Do not rely on behavior you have not checked. Pay attention to types, object lifetime, boundary conditions, ownership, and error paths. Prefer the simplest standard C++ facility that expresses the requirement."}],code:g.code,tip:g.how,practice:g.task+" Then extend your solution with one additional requirement from this chapter: "+chapter.topics[(i+1)%10].toLowerCase()+".",quiz:{q,opts:rotated,a:correct,why:"This checks "+title.toLowerCase()+". "+answer+". Re-read the lesson explanation and compile a small example to verify the rule."}};
 }));
 export const chapterTests=Object.fromEntries(chapters.map(c=>[c.id,lessons.filter(l=>l.chapterId===c.id).filter((_,i)=>i%2===0).map(l=>({lessonId:l.id,question:l.quiz.q,options:l.quiz.opts,answer:l.quiz.a,explanation:l.quiz.why}))]));
