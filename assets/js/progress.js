@@ -1,10 +1,69 @@
-import {supabase,isSupabaseConfigured} from "./supabase.js";
-const KEY="learncpp-v2";
-export const emptyProgress=()=>({completed:[],answers:[],tests:[],xp:0});
-export function loadLocal(){try{return {...emptyProgress(),...JSON.parse(localStorage.getItem(KEY)||"{}")};}catch{return emptyProgress();}}
-export function saveLocal(s){s.xp=(s.completed.length*25)+(s.answers.filter(a=>a.correct).length*10);localStorage.setItem(KEY,JSON.stringify(s));}
-export async function loadProgress(user){if(!user||!isSupabaseConfigured)return loadLocal();const [p,a,t]=await Promise.all([supabase.from("lesson_progress").select("lesson_id").eq("user_id",user.id),supabase.from("quiz_attempts").select("lesson_id,skill,correct,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(500),supabase.from("chapter_test_attempts").select("chapter_id,score,total,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(100)]);for(const x of [p,a,t])if(x.error)throw x.error;const answers=a.data;return {completed:p.data.map(x=>x.lesson_id),answers,tests:t.data,xp:p.data.length*25+answers.filter(x=>x.correct).length*10};}
-export async function saveLesson(user,s,id){if(!s.completed.includes(id))s.completed.push(id);saveLocal(s);if(user&&isSupabaseConfigured){const {error}=await supabase.from("lesson_progress").upsert({user_id:user.id,lesson_id:id,completed_at:new Date().toISOString()},{onConflict:"user_id,lesson_id"});if(error)throw error;}}
-export async function recordAnswer(user,s,lesson,correct){const a={lesson_id:lesson.id,skill:lesson.tags[0],correct,created_at:new Date().toISOString()};s.answers.unshift(a);if(s.answers.length>500)s.answers.length=500;saveLocal(s);if(user&&isSupabaseConfigured){const {error}=await supabase.from("quiz_attempts").insert({user_id:user.id,...a});if(error)throw error;}s.xp=(s.completed.length*25)+(s.answers.filter(x=>x.correct).length*10);saveLocal(s);}
-export async function recordTest(user,s,chapterId,score,total){const a={chapter_id:chapterId,score,total,created_at:new Date().toISOString()};s.tests.unshift(a);saveLocal(s);if(user&&isSupabaseConfigured){const {error}=await supabase.from("chapter_test_attempts").insert({user_id:user.id,...a});if(error)throw error;}}
-export function analyse(s){const stats={};for(const a of s.answers||[]){const k=a.skill||"General";stats[k]??={right:0,total:0};stats[k].total++;if(a.correct)stats[k].right++;}const all=Object.entries(stats).map(([skill,v])=>({skill,total:v.total,accuracy:Math.round(v.right/v.total*100)})).filter(x=>x.total>=2).sort((a,b)=>b.accuracy-a.accuracy);return {strengths:all.filter(x=>x.accuracy>=80).slice(0,5),weaknesses:all.filter(x=>x.accuracy<65).reverse().slice(0,5),all};}
+import { supabaseReady, isSupabaseConfigured } from "./supabase.js";
+const KEY = "learncpp-v2";
+export const emptyProgress = () => ({ completed: [], answers: [], tests: [], xp: 0 });
+export function loadLocal() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY) || "{}");
+    return { ...emptyProgress(), ...saved, completed: Array.isArray(saved.completed) ? saved.completed : [], answers: Array.isArray(saved.answers) ? saved.answers : [], tests: Array.isArray(saved.tests) ? saved.tests : [] };
+  } catch { return emptyProgress(); }
+}
+export function saveLocal(s) {
+  s.xp = (s.completed.length * 25) + (s.answers.filter(a => a.correct).length * 10);
+  localStorage.setItem(KEY, JSON.stringify(s));
+}
+export async function loadProgress(user) {
+  const local = loadLocal();
+  const client = await supabaseReady;
+  if (!user || !client || !isSupabaseConfigured) return local;
+  const [p, a, t] = await Promise.all([
+    client.from("lesson_progress").select("lesson_id").eq("user_id", user.id),
+    client.from("quiz_attempts").select("lesson_id,skill,correct,created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(500),
+    client.from("chapter_test_attempts").select("chapter_id,score,total,created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(100)
+  ]);
+  for (const x of [p, a, t]) if (x.error) throw x.error;
+  const answers = a.data || [];
+  return { completed: (p.data || []).map(x => x.lesson_id), answers, tests: t.data || [], xp: (p.data || []).length * 25 + answers.filter(x => x.correct).length * 10 };
+}
+export async function saveLesson(user, s, id) {
+  if (!s.completed.includes(id)) s.completed.push(id);
+  saveLocal(s);
+  const client = await supabaseReady;
+  if (user && client && isSupabaseConfigured) {
+    const { error } = await client.from("lesson_progress").upsert({ user_id: user.id, lesson_id: id, completed_at: new Date().toISOString() }, { onConflict: "user_id,lesson_id" });
+    if (error) throw error;
+  }
+}
+export async function recordAnswer(user, s, lesson, correct) {
+  const a = { lesson_id: lesson.id, skill: lesson.tags[0], correct, created_at: new Date().toISOString() };
+  s.answers.unshift(a);
+  if (s.answers.length > 500) s.answers.length = 500;
+  saveLocal(s);
+  const client = await supabaseReady;
+  if (user && client && isSupabaseConfigured) {
+    const { error } = await client.from("quiz_attempts").insert({ user_id: user.id, ...a });
+    if (error) throw error;
+  }
+  s.xp = (s.completed.length * 25) + (s.answers.filter(x => x.correct).length * 10);
+  saveLocal(s);
+}
+export async function recordTest(user, s, chapterId, score, total) {
+  const a = { chapter_id: chapterId, score, total, created_at: new Date().toISOString() };
+  s.tests.unshift(a);
+  saveLocal(s);
+  const client = await supabaseReady;
+  if (user && client && isSupabaseConfigured) {
+    const { error } = await client.from("chapter_test_attempts").insert({ user_id: user.id, ...a });
+    if (error) throw error;
+  }
+}
+export function analyse(s) {
+  const stats = {};
+  for (const a of s.answers || []) {
+    const k = a.skill || "General";
+    stats[k] ??= { right: 0, total: 0 };
+    stats[k].total++;
+    if (a.correct) stats[k].right++;
+  }
+  const all = Object.entries(stats).map(([skill, v]) => ({ skill, total: v.total, accuracy: Math.round(v.right / v.total * 100) })).filter(x => x.total >= 2).sort((a, b) => b.accuracy - a.accuracy);
+  return { strengths: all.filter(x => x.accuracy >= 80).slice(0, 5), weaknesses: all.filter(x => x.accuracy < 65).reverse().slice(0, 5), all };
+}
