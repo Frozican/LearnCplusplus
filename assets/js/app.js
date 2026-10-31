@@ -24,5 +24,30 @@ function resume(){const next=lessons.find(l=>!state.completed.includes(l.id))||l
 function search(q){if(!q.trim()){dashboard();return}const hits=lessons.filter(l=>(l.title+" "+l.summary+" "+l.tags.join(" ")).toLowerCase().includes(q.toLowerCase())).slice(0,30);current={view:"search"};crumb("Search / "+q);root.innerHTML='<div class="eyebrow">LESSON SEARCH</div><h1 style="font-size:30px">Results for “'+esc(q)+'”</h1><div class="chapter-list">'+(hits.length?hits.map(l=>'<article class="chapter-card"><div class="chapter-number">'+(state.completed.includes(l.id)?"✓":"→")+'</div><div><div class="eyebrow">'+esc(l.course)+' · '+esc(getChapter(l.chapterId).title)+'</div><h3>'+esc(l.title)+'</h3><p>'+esc(l.summary)+'</p></div>'+btn("hit-"+l.id,"Open","btn small")+'</article>').join(""):'<div class="empty">No matching lessons found.</div>')+'</div>';hits.forEach(l=>$("#hit-"+l.id).onclick=()=>openLesson(l.id))}
 function route(v){if(v==="dashboard")dashboard();else if(v==="courses")courseList();else if(v==="progress")progressPage();else if(v==="insights")insights();else accountPage()}
 document.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>{$("#sidebar").classList.remove("open");route(b.dataset.view)});$("#auth-button").onclick=()=>accountPage();$("#menu").onclick=()=>$("#sidebar").classList.toggle("open");$("#search").addEventListener("input",e=>{if(e.target.value.trim())search(e.target.value);else dashboard()});
-async function init(){try{const session=await getSession();user=session?.user||null;if(user)state=await loadProgress(user);syncShell();dashboard();onAuthChange(async sessionNow=>{user=sessionNow?.user||null;try{state=await loadProgress(user)}catch(e){console.error(e)}syncShell();if(current.view==="account")accountPage();else dashboard()})}catch(e){console.error(e);dashboard()}}
+async function init(){
+  // Render the local learning workspace immediately; cloud auth is optional.
+  syncShell();
+  dashboard();
+  try {
+    const session = await getSession();
+    user = session?.user || null;
+    if (user) {
+      try { state = await loadProgress(user); }
+      catch (error) { console.error("Could not sync cloud progress; keeping local progress.", error); }
+    }
+    syncShell();
+    if (user && current.view === "dashboard") dashboard();
+    onAuthChange(async sessionNow => {
+      user = sessionNow?.user || null;
+      try { state = await loadProgress(user); }
+      catch (error) { console.error("Could not sync cloud progress.", error); }
+      syncShell();
+      if (current.view === "account") accountPage();
+      else if (current.view === "dashboard") dashboard();
+    });
+  } catch (error) {
+    console.error("Optional account initialization failed; local learning remains available.", error);
+    syncShell();
+  }
+}
 init();
