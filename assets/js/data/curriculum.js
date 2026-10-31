@@ -22,7 +22,7 @@ const guides=[
 {about:"Concurrent programs run tasks that may overlap in time. Threads, mutexes, condition variables, and atomics coordinate access, but do not remove the need for clear ownership.",how:"Give shared state a synchronization strategy, keep critical sections small, prefer RAII lock guards, and measure performance before adding concurrency.",code:"#include <iostream>\n#include <mutex>\n#include <thread>\n\nint main() {\n    std::mutex output;\n    std::jthread worker([&] {\n        std::lock_guard lock(output);\n        std::cout << \"Worker finished\\n\";\n    });\n}",task:"Create two worker threads that update separate counters, then safely combine the results. Explain why a data race would be undefined behavior.",q:"What problem does a mutex solve?",opts:["It protects shared data from simultaneous unsynchronized access","It makes every function run faster","It automatically divides work between CPU cores","It prevents all exceptions"],a:0}
 ];
 const lessonKinds=[
-[/compiler|source file|program runs|first program|main\\(\\)|statements|blocks|comments|mini project/i,0],
+[/compiler|source file|program runs|first program|main\(\)|statements|blocks|comments|mini project/i,0],
 [/variable|identifier|integer|floating|character|boolean|const|conversion|operator|precedence|overflow/i,1],
 [/iostream|cout|cin|getline|escape|stream|precision|format|console/i,2],
 [/boolean|comparison|if statement|if and else|else if|nested condition|logical|switch|conditional operator/i,3],
@@ -37,7 +37,7 @@ const lessonKinds=[
 [/algorithm|sort|binary search|transform|copy|predicate|comparator|lambda|capture|function object|ranges|views/i,12],
 [/template|generic|concept|specialization|type trait|deduction/i,13],
 [/resource|raii|unique_ptr|shared_ptr|weak_ptr|copy semantics|move semantics|std::move|rule of|exception-safe/i,14],
-[/auto |type deduction|nullptr and stronger|structured binding|optional|variant|string_view|constexpr|consteval|if constexpr|three-way|c\\+\\+23/i,15],
+[/auto |type deduction|nullptr and stronger|structured binding|optional|variant|string_view|constexpr|consteval|if constexpr|three-way|c\+\+23/i,15],
 [/error|assertion|precondition|exception|expected|debug|stack trace|sanitizer|undefined behavior|testing/i,16],
 [/file|binary|parsing|header and source|include guard|one definition|library|module|cmake|build configuration/i,17],
 [/big-o|search|linked list|stack|queue|hash|tree|heap|graph|recursion|backtracking|dynamic programming/i,18],
@@ -51,6 +51,6 @@ export const lessons=chapters.flatMap((chapter,ci)=>chapter.topics.map((title,i)
  const id=chapter.id+"-"+String(i+1).padStart(2,"0"),g=guideFor(title,ci);
  const about=title+": "+g.about;
  const how=g.how+" Focus on "+title.toLowerCase()+": write down the rule in your own words, trace one concrete example, and check the relevant standard-library or language guarantees before relying on an assumption.";
- return {id,chapterId:chapter.id,course:chapter.course,level:chapter.course==="Basic Course"?"Beginner":"Advanced",number:i+1,title,minutes:chapter.course==="Basic Course"?12:18,tags:[chapter.title,title],summary:about,sections:[{heading:"The core idea",body:about},{heading:"How to reason about it",body:how},{heading:"Common mistakes to avoid",body:"Do not rely on behavior you have not checked. Pay attention to types, object lifetime, boundary conditions, ownership, and error paths. Prefer the simplest standard C++ facility that expresses the requirement."}],code:g.code,tip:g.how,practice:g.task+" Then extend your solution with one additional requirement from this chapter: "+chapter.topics[(i+1)%10].toLowerCase()+".",quiz:{q:g.q,opts:g.opts,a:g.a,why:"The correct choice follows from the C++ rule described above. Compile a small experiment and inspect the result rather than memorizing the answer."}};
+ return {id,chapterId:chapter.id,course:chapter.course,level:chapter.course==="Basic Course"?"Beginner":"Advanced",number:i+1,title,minutes:chapter.course==="Basic Course"?12:18,tags:[title,chapter.title],summary:about,sections:[{heading:"The core idea",body:about},{heading:"How to reason about it",body:how},{heading:"Common mistakes to avoid",body:"Do not rely on behavior you have not checked. Pay attention to types, object lifetime, boundary conditions, ownership, and error paths. Prefer the simplest standard C++ facility that expresses the requirement."}],code:g.code,tip:g.how,practice:g.task+" Then extend your solution with one additional requirement from this chapter: "+chapter.topics[(i+1)%10].toLowerCase()+".",quiz:{q:title+": "+g.q,opts:g.opts,a:g.a,why:"The correct choice follows from the C++ rule for "+title.toLowerCase()+". Compile a small experiment and inspect the result rather than memorizing the answer."}};
 }));
 export const chapterTests=Object.fromEntries(chapters.map(c=>[c.id,lessons.filter(l=>l.chapterId===c.id).filter((_,i)=>i%2===0).map(l=>({lessonId:l.id,question:l.quiz.q,options:l.quiz.opts,answer:l.quiz.a,explanation:l.quiz.why}))]));
