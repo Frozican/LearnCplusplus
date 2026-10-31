@@ -289,7 +289,7 @@ const topicChecks=[
 ["What should happen before optimizing a project?","Measure a working baseline and identify the actual bottleneck"]
 ]
 ];
-const lessons=chapters.flatMap((chapter,ci)=>chapter.topics.map((title,i)=>{
+export const lessons=chapters.flatMap((chapter,ci)=>chapter.topics.map((title,i)=>{
  const id=chapter.id+"-"+String(i+1).padStart(2,"0"),g=guideFor(title,ci),[q,answer]=topicChecks[ci][i];
  const pool=topicChecks[ci].filter((_,j)=>j!==i).map(x=>x[1]);
  const distractors=[pool[(i+1)%pool.length],pool[(i+4)%pool.length],pool[(i+7)%pool.length]];
