@@ -14,3 +14,9 @@ drop policy if exists "Users read own chapter tests" on public.chapter_test_atte
 drop policy if exists "Users insert own chapter tests" on public.chapter_test_attempts;create policy "Users insert own chapter tests" on public.chapter_test_attempts for insert with check(auth.uid()=user_id);
 create or replace function public.handle_new_user() returns trigger language plpgsql security definer set search_path='' as $$ begin insert into public.profiles(id,display_name) values(new.id,coalesce(new.raw_user_meta_data->>'display_name',split_part(new.email,'@',1))) on conflict(id) do nothing;return new;end;$$;
 drop trigger if exists on_auth_user_created on auth.users;create trigger on_auth_user_created after insert on auth.users for each row execute procedure public.handle_new_user();
+
+grant select,insert,update,delete on public.profiles to authenticated;
+grant select,insert,update,delete on public.lesson_progress to authenticated;
+grant select,insert on public.quiz_attempts to authenticated;
+grant select,insert on public.chapter_test_attempts to authenticated;
+grant usage,select on all sequences in schema public to authenticated;
