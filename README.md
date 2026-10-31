@@ -1,30 +1,47 @@
 # Learn C++
 
-A free browser-based C++ learning platform with a Basic Course and an Advanced Course.
+A free, structured C++ learning platform with **200 lessons across 20 chapters**, optional chapter tests, progress analytics, and optional Supabase accounts.
 
 ## Features
-
-- 10 beginner lessons and 11 advanced lessons
-- Explanations, code examples, tips, and knowledge checks
-- Searchable lesson library
-- Local progress tracking and XP
-- Responsive desktop and mobile layout
-- No account, backend, framework, or build step required
+- 100 Basic Course lessons and 100 Advanced Course lessons
+- 20 chapters with 10 lessons each
+- A knowledge check in every lesson
+- Optional 5-question chapter tests
+- Progress, XP, strengths, weaknesses, and revision suggestions
+- Supabase email/password authentication and cloud progress sync
+- Local progress fallback when Supabase is not configured
+- Responsive interface and no build step for GitHub Pages
 
 ## GitHub Pages
+In Settings → Pages, choose GitHub Actions. The included workflow deploys the repository root on every push to main.
 
-1. Open **Settings → Pages**.
-2. Set the deployment source to **GitHub Actions**.
-3. The workflow in `.github/workflows/pages.yml` deploys on pushes to `main`; it can also be started manually in Actions.
+## Configure Supabase
+1. Create a Supabase project.
+2. In Project Settings → API, copy the Project URL and public anon/publishable key.
+3. Set SUPABASE_URL and SUPABASE_ANON_KEY in assets/js/config.js.
+4. Run the complete SQL script in supabase/schema.sql using Supabase SQL Editor.
+5. In Authentication → URL Configuration, add https://frozican.github.io/LearnCplusplus/ to allowed redirect URLs.
+6. Configure email confirmation and SMTP in Supabase Auth as desired.
+
+Only the public anon/publishable key belongs in the browser. Never expose a service_role key. Row Level Security is enabled for user data.
+
+Without Supabase credentials, lessons and local progress work, but registration and cloud sync are disabled.
 
 ## Structure
+- index.html — application shell
+- assets/css/app.css — responsive interface
+- assets/js/app.js — UI, navigation, lessons, tests, dashboards
+- assets/js/data/curriculum.js — 200 lessons and chapter test bank
+- assets/js/config.js — public Supabase configuration
+- assets/js/supabase.js — Supabase client
+- assets/js/auth.js — sign-up, sign-in, sign-out, password reset
+- assets/js/progress.js — local/cloud progress and skill analysis
+- supabase/schema.sql — tables, indexes, trigger, and RLS policies
 
-- `assets/css/main.css` — site styling
-- `assets/js/app.js` — application startup and event wiring
-- `assets/js/navigation.js` — dashboard, course navigation, and lesson rendering
-- `assets/js/progress.js` — progress state, XP, and local storage
-- `assets/js/quiz.js` — quiz checking and lesson completion
-- `assets/js/search.js` — lesson search
-- `assets/js/lessons/basic.js` and `advanced.js` — separate course content
+## Curriculum
+**Basic:** C++ Foundations; Variables, Types & Expressions; Input, Output & Formatting; Decisions & Boolean Logic; Loops & Iteration; Functions & Program Structure; Arrays, Strings & Collections; References, Pointers & Memory; Structs, Enums & User-Defined Types; Classes & Object-Oriented Basics.
 
-Progress is stored in local storage. The site teaches through explanations, examples, and quizzes; it does not execute C++ code in the browser.
+**Advanced:** Object-Oriented Design; STL Containers & Iterators; Algorithms, Lambdas & Ranges; Templates & Generic Programming; Resource Management & RAII; Modern C++ Features; Errors, Exceptions & Debugging; Files, Modules & Build Systems; Data Structures & Algorithms; Concurrency, Performance & Projects.
+
+## Notes
+The platform teaches with explanations, examples, practice prompts, and quizzes. It does not yet compile or execute submitted C++ code in the browser. Skill insights are based on quiz attempts and become more meaningful with more answers.
