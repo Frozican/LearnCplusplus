@@ -20,6 +20,13 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+      - name: Validate JavaScript modules
+        run: |
+          node --version
+          for file in assets/js/app.js assets/js/auth.js assets/js/progress.js assets/js/supabase.js assets/js/data/curriculum.js; do
+            node --input-type=module --check < "$file"
+          done
+          node --input-type=module -e "import('node:fs').then(fs => import('data:text/javascript,' + encodeURIComponent(fs.readFileSync('assets/js/data/curriculum.js', 'utf8')))).then(m => { if (m.lessons.length !== 200 || m.chapters.length !== 20) process.exit(1); console.log('Curriculum OK:', m.lessons.length, 'lessons'); })"
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload site
