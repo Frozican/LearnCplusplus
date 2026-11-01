@@ -68,6 +68,8 @@ values ('avatars','avatars',true,2097152,array['image/jpeg','image/png','image/w
 on conflict (id) do update set public=true,file_size_limit=2097152,allowed_mime_types=array['image/jpeg','image/png','image/webp'];
 drop policy if exists "Users upload own profile avatars" on storage.objects;
 create policy "Users upload own profile avatars" on storage.objects for insert to authenticated with check(bucket_id='avatars' and (storage.foldername(name))[1]=(select auth.uid())::text);
+drop policy if exists "Users read own profile avatars" on storage.objects;
+create policy "Users read own profile avatars" on storage.objects for select to authenticated using(bucket_id='avatars' and (storage.foldername(name))[1]=(select auth.uid())::text);
 drop policy if exists "Users update own profile avatars" on storage.objects;
 create policy "Users update own profile avatars" on storage.objects for update to authenticated using(bucket_id='avatars' and (storage.foldername(name))[1]=(select auth.uid())::text) with check(bucket_id='avatars' and (storage.foldername(name))[1]=(select auth.uid())::text);
 drop policy if exists "Users delete own profile avatars" on storage.objects for delete to authenticated using(bucket_id='avatars' and (storage.foldername(name))[1]=(select auth.uid())::text);
