@@ -20,3 +20,35 @@ grant select,insert,update,delete on public.lesson_progress to authenticated;
 grant select,insert on public.quiz_attempts to authenticated;
 grant select,insert on public.chapter_test_attempts to authenticated;
 grant usage,select on all sequences in schema public to authenticated;
+
+-- Friends: authenticated users can discover usernames; relationships stay private to participants.
+alter table public.profiles add column if not exists username text;
+update public.profiles set username = left(coalesce(nullif(lower(regexp_replace(coalesce(display_name,'learner'),'[^a-zA-Z0-9_]','','g')),''),'learner'),15) || '_' || substr(id::text,1,4) where username is null;
+alter table public.profiles alter column username set not null;
+alter table public.profiles drop constraint if exists profiles_username_format;
+alter table public.profiles add constraint profiles_username_format check(username ~ '^[a-z0-9_]{3,24}$');
+create unique index if not exists profiles_username_lower_unique on public.profiles(lower(username));
+drop policy if exists "Authenticated users can discover profiles" on public.profiles;
+create policy "Authenticated users can discover profiles" on public.profiles for select to authenticated using(true);
+create table if not exists public.friend_requests(id uuid primary key default gen_random_uuid(),requester_id uuid not null references auth.users(id) on delete cascade,recipient_id uuid not null references auth.users(id) on delete cascade,status text not null default 'pending' check(status in ('pending','accepted','declined')),created_at timestamptz not null default now(),updated_at timestamptz not null default now(),constraint friend_requests_not_self check(requester_id<>recipient_id));
+create unique index if not exists friend_requests_pair_unique on public.friend_requests(least(requester_id,recipient_id),greatest(requester_id,recipient_id));
+create index if not exists friend_requests_recipient_status_idx on public.friend_requests(recipient_id,status,created_at desc);
+create index if not exists friend_requests_requester_status_idx on public.friend_requests(requester_id,status,created_at desc);
+alter table public.friend_requests enable row level security;
+drop policy if exists "Users can view their own friend requests" on public.friend_requests;
+create policy "Users can view their own friend requests" on public.friend_requests for select to authenticated using((select auth.uid())=requester_id or (select auth.uid())=recipient_id);
+drop policy if exists "Users can send friend requests" on public.friend_requests;
+create policy "Users can send friend requests" on public.friend_requests for insert to authenticated with check((select auth.uid())=requester_id and status='pending');
+drop policy if exists "Recipients can respond to friend requests" on public.friend_requests;
+create policy "Recipients can respond to friend requests" on public.friend_requests for update to authenticated using((select auth.uid())=recipient_id and status='pending') with check((select auth.uid())=recipient_id and status in ('accepted','declined'));
+drop policy if exists "Participants can remove friendships" on public.friend_requests;
+create policy "Participants can remove friendships" on public.friend_requests for delete to authenticated using((select auth.uid())=requester_id or (select auth.uid())=recipient_id);
+create or replace function public.guard_friend_request_update() returns trigger language plpgsql set search_path='' as $$
+begin
+if new.requester_id<>old.requester_id or new.recipient_id<>old.recipient_id then raise exception 'Friend request participants cannot be changed'; end if;
+if old.status<>'pending' or new.status not in ('accepted','declined') then raise exception 'Only pending requests can be accepted or declined'; end if;
+new.updated_at:=pg_catalog.now();return new;end;$$;
+drop trigger if exists friend_request_update_guard on public.friend_requests;
+create trigger friend_request_update_guard before update on public.friend_requests for each row execute function public.guard_friend_request_update();
+grant select,update on public.profiles to authenticated;
+grant select,insert,update,delete on public.friend_requests to authenticated;
