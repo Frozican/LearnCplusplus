@@ -35,3 +35,13 @@
  .top-actions .search{width:92px}
  .hero h1{font-size:34px}
 }
+
+/* Learning level and daily streak */
+.gamification{display:grid;grid-template-columns:minmax(220px,1.5fr) minmax(125px,.7fr) minmax(125px,.7fr);gap:16px;align-items:center;padding:18px 20px;margin:10px 0 24px;border:1px solid #29445f;border-radius:17px;background:linear-gradient(110deg,#14253b,#10202e)}
+.gam-level{display:flex;align-items:center;gap:15px;min-width:0}
+.level-orb{width:54px;height:54px;flex:none;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--blue),var(--cyan));color:#071421;font-size:21px;font-weight:900;box-shadow:0 0 24px #64dfd033}
+.gam-level h3{margin:4px 0;font-size:19px}.gam-level p{font-size:11px;color:var(--muted);margin:0 0 8px}
+.streak-box{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#0d1928}
+.streak-icon{font-size:25px}.streak-box strong{display:block;font-size:19px}.streak-box span{font-size:10px;color:var(--muted)}
+.streak-note{grid-column:1/-1;font-size:11px;color:var(--muted);padding-top:2px}
+@media(max-width:650px){.gamification{grid-template-columns:1fr 1fr;padding:15px;gap:10px}.gam-level{grid-column:1/-1}.streak-note{grid-column:1/-1}.streak-box{padding:10px}.streak-box strong{font-size:16px}}
