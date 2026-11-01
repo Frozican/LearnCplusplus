@@ -52,3 +52,11 @@ drop trigger if exists friend_request_update_guard on public.friend_requests;
 create trigger friend_request_update_guard before update on public.friend_requests for each row execute function public.guard_friend_request_update();
 grant select,update on public.profiles to authenticated;
 grant select,insert,update,delete on public.friend_requests to authenticated;
+
+-- Friends may see only the learning activity needed for XP and streak comparisons.
+drop policy if exists "Friends can view shared lesson progress" on public.lesson_progress;
+create policy "Friends can view shared lesson progress" on public.lesson_progress for select to authenticated
+using (user_id=(select auth.uid()) or exists(select 1 from public.friend_requests fr where fr.status='accepted' and ((fr.requester_id=(select auth.uid()) and fr.recipient_id=lesson_progress.user_id) or (fr.recipient_id=(select auth.uid()) and fr.requester_id=lesson_progress.user_id))));
+drop policy if exists "Friends can view shared chapter tests" on public.chapter_test_attempts;
+create policy "Friends can view shared chapter tests" on public.chapter_test_attempts for select to authenticated
+using (user_id=(select auth.uid()) or exists(select 1 from public.friend_requests fr where fr.status='accepted' and ((fr.requester_id=(select auth.uid()) and fr.recipient_id=chapter_test_attempts.user_id) or (fr.recipient_id=(select auth.uid()) and fr.requester_id=chapter_test_attempts.user_id))));
