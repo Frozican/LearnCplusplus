@@ -7,7 +7,7 @@ import {uploadProfileAvatar,getPublicProfile} from "./profiles.js";
 const $=s=>document.querySelector(s), root=$("#content");
 let user=null, state=loadLocal(), current={view:"dashboard"};
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const pct=(n,d)=>d?Math.round(n/d/c.topics.length*1000):0;
+const pct=(n,d)=>d?Math.round(n/d*100):0;
 const getChapter=id=>chapters.find(c=>c.id===id), getLesson=id=>lessons.find(l=>l.id===id);
 const btn=(id,label,cls="btn")=>'<button type="button" id="'+id+'" class="'+cls+'">'+label+'</button>';
 function crumb(t){$("#breadcrumb").textContent=t}
