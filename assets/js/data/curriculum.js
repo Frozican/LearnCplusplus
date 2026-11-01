@@ -293,7 +293,7 @@ const topicChecks=[
  ];
 topicChecks.push(...extraChapters.map(ch=>ch.topics.map(topic=>[
   "Which approach best describes "+topic+"?",
-  "Apply the relevant C++ rules, understand the trade-offs, and verify behavior with focused examples"
+  "It focuses on "+topic.toLowerCase()+" as one part of "+ch.title.toLowerCase()+", with attention to correct C++ usage, edge cases, and design trade-offs"
 ])));
 export const lessons=chapters.flatMap((chapter,ci)=>chapter.topics.map((title,i)=>{
  const id=chapter.id+"-"+String(i+1).padStart(2,"0"),g=guideFor(title,ci),[q,answer]=topicChecks[ci][i];
