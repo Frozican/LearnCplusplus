@@ -1,10 +1,10 @@
 # Learn C++
 
-A free, structured C++ learning platform with **200 lessons across 20 chapters**, optional chapter tests, progress analytics, and optional Supabase accounts.
+A free, structured C++ learning platform with **1,000 lessons across 100 chapters**, optional chapter tests, progress analytics, and optional Supabase accounts.
 
 ## Features
-- 100 Basic Course lessons and 100 Advanced Course lessons
-- 20 chapters with 10 lessons each
+- 500 Basic Course lessons and 500 Advanced Course lessons
+- 100 chapters with 10 lessons each
 - A knowledge check in every lesson
 - Optional 5-question chapter tests
 - Progress, XP, strengths, weaknesses, and revision suggestions
@@ -31,7 +31,7 @@ Without Supabase credentials, lessons and local progress work, but registration 
 - index.html — application shell
 - assets/css/app.css — responsive interface
 - assets/js/app.js — UI, navigation, lessons, tests, dashboards
-- assets/js/data/curriculum.js — 200 lessons and chapter test bank
+- assets/js/data/curriculum.js — 1,000 lessons and chapter test bank
 - assets/js/config.js — public Supabase configuration
 - assets/js/supabase.js — Supabase client
 - assets/js/auth.js — sign-up, sign-in, sign-out, password reset
