@@ -60,3 +60,14 @@ using (user_id=(select auth.uid()) or exists(select 1 from public.friend_request
 drop policy if exists "Friends can view shared chapter tests" on public.chapter_test_attempts;
 create policy "Friends can view shared chapter tests" on public.chapter_test_attempts for select to authenticated
 using (user_id=(select auth.uid()) or exists(select 1 from public.friend_requests fr where fr.status='accepted' and ((fr.requester_id=(select auth.uid()) and fr.recipient_id=chapter_test_attempts.user_id) or (fr.recipient_id=(select auth.uid()) and fr.requester_id=chapter_test_attempts.user_id))));
+
+-- Public profile pictures; only each owner can upload, replace, or delete their own files.
+alter table public.profiles add column if not exists avatar_url text;
+insert into storage.buckets (id,name,public,file_size_limit,allowed_mime_types)
+values ('avatars','avatars',true,2097152,array['image/jpeg','image/png','image/webp'])
+on conflict (id) do update set public=true,file_size_limit=2097152,allowed_mime_types=array['image/jpeg','image/png','image/webp'];
+drop policy if exists "Users upload own profile avatars" on storage.objects;
+create policy "Users upload own profile avatars" on storage.objects for insert to authenticated with check(bucket_id='avatars' and (storage.foldername(name))[1]=(select auth.uid())::text);
+drop policy if exists "Users update own profile avatars" on storage.objects;
+create policy "Users update own profile avatars" on storage.objects for update to authenticated using(bucket_id='avatars' and (storage.foldername(name))[1]=(select auth.uid())::text) with check(bucket_id='avatars' and (storage.foldername(name))[1]=(select auth.uid())::text);
+drop policy if exists "Users delete own profile avatars" on storage.objects for delete to authenticated using(bucket_id='avatars' and (storage.foldername(name))[1]=(select auth.uid())::text);
